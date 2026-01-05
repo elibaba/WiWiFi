@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiWiFi - Network Analysis Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+</head>
+
+<body class="dark-theme">
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>WiWiFi</h1>
+        <span class="status-badge" id="app-status">Offline</span>
+      </div>
+
+      <nav class="controls">
+        <div class="control-group">
+          <h3>Hotspot Control</h3>
+          <button id="btn-hotspot-toggle" class="btn btn-primary">Start Hotspot</button>
+          <div class="input-field">
+            <label>SSID</label>
+            <input type="text" id="input-ssid" value="WiWiFi_Free">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Sniffer Control</h3>
+          <button id="btn-sniffer-toggle" class="btn btn-secondary">Start Sniffer</button>
+          <label class="checkbox-container">
+            Simulation Mode
+            <input type="checkbox" id="check-simulation" checked>
+            <span class="checkmark"></span>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <h3>Filters</h3>
+          <div class="input-field">
+            <label>MAC Address</label>
+            <input type="text" id="filter-mac" placeholder="00:11:...">
+          </div>
+          <div class="input-field">
+            <label>IP Address</label>
+            <input type="text" id="filter-ip" placeholder="192.168...">
+          </div>
+          <button id="btn-apply-filters" class="btn btn-small">Apply Filters</button>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="search-container">
+          <input type="text" id="search-input" placeholder="Search payloads for phrases...">
+          <button id="btn-search">Search</button>
+        </div>
+      </header>
+
+      <section class="dashboard">
+        <div class="panel packet-log">
+          <h2>Traffic Log</h2>
+          <div class="table-container">
+            <table id="packet-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Source MAC</th>
+                  <th>Source IP</th>
+                  <th>Destination</th>
+                  <th>Payload Snippet</th>
+                </tr>
+              </thead>
+              <tbody id="packet-body">
+                <!-- Packets will be injected here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside class="panel insights">
+          <h2>AI Insights</h2>
+          <div id="insights-container" class="insights-scroll">
+            <div class="insight-placeholder">Waiting for traffic...</div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for packet details -->
+  <div id="packet-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Packet Details</h2>
+      <div id="modal-details"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
