@@ -1,12 +1,18 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Body, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
 import os
 
 from .database import init_db, search_packets
 from .sniffer import Sniffer
 from .hotspot import HotspotManager
+
+class DNSRule(BaseModel):
+    target_ip: str
+    domain: str
+    spoof_ip: str
 
 app = FastAPI(title="WiWiFi API")
 
@@ -61,6 +67,23 @@ async def get_status():
         "sniffer_simulation": sniffer.simulation,
         "hotspot_running": hotspot.hostapd_proc is not None
     }
+
+@app.get("/api/dns/rules")
+async def get_dns_rules():
+    rules = []
+    for (ip, domain), spoof_ip in sniffer.spoof_rules.items():
+        rules.append({"target_ip": ip, "domain": domain, "spoof_ip": spoof_ip})
+    return rules
+
+@app.post("/api/dns/rules")
+async def add_dns_rule(rule: DNSRule):
+    sniffer.add_spoof_rule(rule.target_ip, rule.domain, rule.spoof_ip)
+    return {"status": "added"}
+
+@app.delete("/api/dns/rules")
+async def remove_dns_rule(target_ip: str, domain: str):
+    sniffer.remove_spoof_rule(target_ip, domain)
+    return {"status": "removed"}
 
 # Serve frontend
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")

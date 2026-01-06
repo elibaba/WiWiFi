@@ -1,0 +1,7 @@
+# Python
+__pycache__/
+*.py[cod]
+*.db
+server.log
+.venv/
+.DS_Store
