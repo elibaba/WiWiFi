@@ -19,6 +19,14 @@ WiWiFi is a powerful Python-based application designed to open an unprotected Wi
     - "AI Insights" panel for floating up critical data points.
 - **Simulation Mode**: Test the entire analysis and UI pipeline without requiring real WiFi hardware or root privileges.
 
+## UI Screenshots
+
+![WiWiFi Dashboard](screenshots/dashboard_mockup.png)
+*A look at the real-time Traffic Log with DNS, HTTP, and TCP packet types identified.*
+
+![DNS Spoofing Modal](screenshots/spoof_modal_mockup.png)
+*Configuring a targeted DNS redirection rule.*
+
 ## Project Structure
 
 - `backend/`: FastAPI server, Sniffer logic, and Database management.
