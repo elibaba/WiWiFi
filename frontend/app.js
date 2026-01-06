@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSpoofed) {
           payloadSnippet += ` <span class="badge-spoofed">SPOOFED</span>`;
         } else {
-          payloadSnippet += ` <button class="btn btn-spoof" onclick="event.stopPropagation(); openDnsModal('${p.src_ip}', '${p.analysis_tags.dns_query[0]}')">Spoof</button>`;
+          payloadSnippet += ` <button class="btn btn-spoof">Spoof</button>`;
         }
       }
 
@@ -103,6 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${p.dst_ip}</td>
                 <td>${payloadSnippet}</td>
             `;
+
+      const spoofBtn = row.querySelector('.btn-spoof');
+      if (spoofBtn) {
+        spoofBtn.onclick = (e) => {
+          e.stopPropagation();
+          openDnsModal(p.src_ip, p.analysis_tags.dns_query[0]);
+        };
+      }
+
       row.onclick = () => showPacketDetails(p);
       packetBody.appendChild(row);
     });
@@ -155,12 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = "block";
   }
 
-  window.openDnsModal = (targetIp, domain) => {
+  function openDnsModal(targetIp, domain) {
     dnsTargetIpInput.value = targetIp;
     dnsDomainInput.value = domain;
     dnsSpoofIpInput.value = '';
     dnsModal.style.display = 'block';
-  };
+  }
 
   btnSaveDnsRule.onclick = async () => {
     const rule = {
@@ -210,13 +219,14 @@ document.addEventListener('DOMContentLoaded', () => {
       div.innerHTML = `
                 <span class="domain">${rule.domain}</span>
                 <span class="details">${rule.target_ip} &rarr; ${rule.spoof_ip}</span>
-                <button class="btn-remove-rule" onclick="removeDnsRule('${rule.target_ip}', '${rule.domain}')">&times;</button>
+                <button class="btn-remove-rule">&times;</button>
             `;
+      div.querySelector('.btn-remove-rule').onclick = () => removeDnsRule(rule.target_ip, rule.domain);
       dnsRulesList.appendChild(div);
     });
   }
 
-  window.removeDnsRule = async (ip, domain) => {
+  async function removeDnsRule(ip, domain) {
     try {
       await fetch(`/api/dns/rules?target_ip=${ip}&domain=${domain}`, {
         method: 'DELETE'
@@ -225,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.error("Failed to remove DNS rule", e);
     }
-  };
+  }
 
   // Modal close
   document.getElementById('close-packet-modal').onclick = () => {

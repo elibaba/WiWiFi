@@ -82,6 +82,7 @@ async def add_dns_rule(rule: DNSRule):
 
 @app.delete("/api/dns/rules")
 async def remove_dns_rule(target_ip: str, domain: str):
+    print(f"DEBUG: Removing DNS rule for {target_ip} / {domain}")
     sniffer.remove_spoof_rule(target_ip, domain)
     return {"status": "removed"}
 

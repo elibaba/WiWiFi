@@ -49,20 +49,25 @@ class Sniffer:
             payload = ""
             analysis = {}
             
-            # Detect DNS Queries
-            if DNS in pkt and pkt[DNS].opcode == 0 and pkt[DNS].ancount == 0:
-                try:
-                    qname = pkt[DNSQR].qname.decode('utf-8').strip('.')
-                    payload = f"DNS Query: {qname}"
-                    analysis["dns_query"] = [qname]
-                    
-                    # Check for spoofing rules
-                    if (src_ip, qname) in self.spoof_rules:
-                        spoof_ip = self.spoof_rules[(src_ip, qname)]
-                        self._send_spoofed_dns_response(pkt, qname, spoof_ip)
-                        analysis["spoofed"] = [f"Redirected to {spoof_ip}"]
-                except Exception as e:
-                    print(f"Error parsing DNS: {e}")
+            # Detect DNS Queries (QR=0 means Query)
+            if DNS in pkt:
+                # print(f"DNS Layer found. QR: {pkt[DNS].qr}") # Debug
+                if pkt[DNS].qr == 0:
+                    try:
+                        qname = pkt[DNSQR].qname.decode('utf-8').strip('.')
+                        payload = f"DNS Query: {qname}"
+                        analysis["dns_query"] = [qname]
+                        
+                        # Check for spoofing rules
+                        if (src_ip, qname) in self.spoof_rules:
+                            spoof_ip = self.spoof_rules[(src_ip, qname)]
+                            self._send_spoofed_dns_response(pkt, qname, spoof_ip)
+                            analysis["spoofed"] = [f"Redirected to {spoof_ip}"]
+                    except Exception as e:
+                        # print(f"Error parsing DNS: {e}")
+                        pass
+            else:
+                pass
 
             if Raw in pkt and not payload:
                 try:
@@ -119,17 +124,18 @@ class Sniffer:
             dst_ip = "8.8.8.8"
             src_mac = macs[ips.index(src_ip)]
             
-            if coin < 0.3: # Simulate DNS Query
+            if coin < 0.5: # Increased to 50% for easier testing
                 domain = random.choice(domains)
                 # Create a mock packet for _process_packet
                 mock_pkt = Ether(src=src_mac, dst="00:11:22:33:44:55")/IP(src=src_ip, dst=dst_ip)/UDP(sport=random.randint(1024, 65535), dport=53)/DNS(rd=1, qd=DNSQR(qname=domain))
+                print(f"Simulating DNS Query for {domain}")
                 self._process_packet(mock_pkt)
             else:
                 payload = random.choice(payloads)
                 analysis = analyze_payload(payload)
                 save_packet(src_ip, src_mac, dst_ip, payload, analysis)
             
-            time.sleep(random.uniform(0.5, 2.0))
+            time.sleep(random.uniform(0.5, 1.5))
 
 if __name__ == "__main__":
     from .database import init_db
