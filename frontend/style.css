@@ -337,12 +337,13 @@ tr:hover {
 }
 
 .badge-spoofed {
-  background: var(--accent-secondary);
+  background: var(--danger-color);
   color: white;
   font-size: 0.65rem;
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   margin-left: 0.5rem;
+  font-weight: bold;
 }
 
 .type-badge {

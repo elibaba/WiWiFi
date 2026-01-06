@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let snifferRunning = false;
   let hotspotRunning = false;
+  let activeDnsRules = [];
 
   // Fetch initial status
   async function updateStatus() {
@@ -87,9 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (p.analysis_tags && p.analysis_tags.dns_query) packetType = 'DNS';
 
       if (isDNS) {
-        payloadSnippet = `<strong>${p.analysis_tags.dns_query[0]}</strong>`;
-        if (isSpoofed) {
-          payloadSnippet += ` <span class="badge-spoofed">SPOOFED</span>`;
+        const domain = p.analysis_tags.dns_query[0];
+        payloadSnippet = `<strong>${domain}</strong>`;
+
+        const matchingRule = activeDnsRules.find(r => r.target_ip === p.src_ip && r.domain === domain);
+        const reallySpoofed = isSpoofed || matchingRule;
+
+        if (reallySpoofed) {
+          payloadSnippet += ` <span class="badge-spoofed">SPOOFED!</span>`;
         } else {
           payloadSnippet += ` <button class="btn btn-spoof">Spoof</button>`;
         }
@@ -199,8 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchDnsRules() {
     try {
       const resp = await fetch('/api/dns/rules');
-      const rules = await resp.json();
-      renderDnsRules(rules);
+      activeDnsRules = await resp.json();
+      renderDnsRules(activeDnsRules);
     } catch (e) {
       console.error("Failed to fetch DNS rules", e);
     }
