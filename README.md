@@ -34,6 +34,32 @@ WiWiFi is a powerful Python-based application designed to open an unprotected Wi
 - `scripts/`: Implementation scripts (setup/cleanup placeholders).
 - `requirements.txt`: Python dependencies.
 
+## Internal Logic
+
+### Analysis Engine
+The Analysis Engine (`backend/analyzer.py`) uses regular expressions to scan packet payloads for sensitive data. It classifies findings into several categories:
+- **PII Detection**: Identifies Emails, Phone numbers, and Social Security Numbers (SSN).
+- **Financial Data**: Scans for 13-16 digit sequences that match Credit Card number patterns.
+- **Infrastructure**: Extracts URLs and identifies potential person names using heuristic capitalized word sequences.
+
+### Sniffer Logic
+The core sniffer (`backend/sniffer.py`) is built on Scapy and operates in two modes:
+- **Real Mode**: Uses `scapy.all.sniff` to capture live IP traffic on a specified interface. Requires root privileges.
+- **Simulation Mode**: Generates synthetic packets (Ethernet/IP/UDP/TCP/DNS) to test the analysis pipeline and UI without special permissions or hardware.
+
+The sniffer processes each packet through a pipeline:
+1. **Header Extraction**: Retrieves source/destination IP and MAC addresses.
+2. **DNS Detection**: Identifies queries by checking the `DNS` layer and the **QR bit** (`qr == 0`).
+3. **Spoofing Check**: Matches queries against active rules.
+4. **Analysis & Storage**: Hands off payloads to the Analysis Engine and saves results to the SQLite database.
+
+### DNS Spoofing
+WiWiFi implements targeted DNS redirection:
+- **Interception**: When a DNS query matches a configured `(Target IP, Domain)` rule, the sniffer intercepts it.
+- **Response Crafting**: It constructs a fake `DNSRR` (DNS Resource Record) response with the desired `spoof_ip`.
+- **Injection**: The crafted packet is injected back into the network with swapped headers (src/dst), causing the client to redirect to the attacker-controlled IP.
+- **Visual Feedback**: Spoofed packets are marked with a bold **"SPOOFED!"** badge in the UI traffic log.
+
 ## Installation
 
 ### Prerequisites
@@ -70,6 +96,36 @@ Then navigate to `http://localhost:8000`.
    sudo python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
    ```
 3. Use the UI to start the hotspot and sniffer on your specific interface.
+
+## Container Deployment
+
+WiWiFi can be easily deployed using Docker and Docker Compose.
+
+### Using Docker Compose (Recommended)
+
+1.  **Build and Run (Simulation Mode)**:
+    ```bash
+    docker-compose up --build
+    ```
+    Access the UI at `http://localhost:8000`.
+
+2.  **Run for Real Hardware Interception**:
+    To capture real traffic, the container needs host network access and high privileges. Edit `docker-compose.yml` to uncomment the `network_mode: "host"` and `privileged: true` lines, then run:
+    ```bash
+    sudo docker-compose up
+    ```
+
+### Using Docker Directly
+
+1.  **Build the image**:
+    ```bash
+    docker build -t wiwifi .
+    ```
+
+2.  **Run in Simulation Mode**:
+    ```bash
+    docker run -p 8000:8000 wiwifi
+    ```
 
 ## Disclaimer
 The contributors to WiWiFi are not responsible for any misuse or damage caused by this tool. Use responsibly.

@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  wiwifi:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+    # Simulation mode (default)
+    command: python3 backend/main.py
+    # For "Real Mode" (requires root on host and hardware support), 
+    # uncomment the following lines and comment out the 'ports' section above:
+    # network_mode: "host"
+    # privileged: true
